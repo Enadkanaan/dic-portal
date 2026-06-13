@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — DIC Data Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/portal.css" />
+  <style>
+    .role-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .role-tab {
+      flex: 1; padding: 8px; border-radius: 6px; border: 2px solid var(--border);
+      background: var(--off-white); cursor: pointer; text-align: center;
+      font-size: .78rem; font-weight: 600; color: var(--text-muted);
+      transition: all .15s;
+    }
+    .role-tab.active { border-color: var(--maroon); background: #FFF5F5; color: var(--maroon); }
+    .role-tab:hover:not(.active) { border-color: #CBD5E1; background: #F1F5F9; }
+    .divider { text-align: center; color: var(--text-muted); font-size: .78rem; margin: 16px 0; position: relative; }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: var(--border);
+    }
+    .divider::before { left: 0; } .divider::after { right: 0; }
+    .forgot-link { font-size: .78rem; color: var(--teal); text-decoration: none; }
+    .forgot-link:hover { text-decoration: underline; }
+    .demo-box {
+      margin-top: 20px; padding: 14px; border-radius: 8px;
+      background: #F0FDF4; border: 1px solid #BBF7D0;
+      font-size: .78rem; color: #166534;
+    }
+    .demo-box strong { display: block; margin-bottom: 6px; color: #15803D; }
+    .demo-cred { display: flex; justify-content: space-between; padding: 3px 0; }
+    .demo-cred code { font-family: monospace; background: rgba(0,0,0,.06); padding: 1px 5px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="logo-mark">DIC</div>
+        <h1>Startup Data Portal</h1>
+        <p>Digital Innovation Centre · Secure Login</p>
+      </div>
+
+      <!-- Role selector -->
+      <div class="role-tabs" id="role-tabs">
+        <button class="role-tab active" data-role="startup">Startup</button>
+        <button class="role-tab" data-role="staff">Staff</button>
+        <button class="role-tab" data-role="admin">Admin</button>
+      </div>
+
+      <div class="login-error" id="login-error"></div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="your@email.com" required autocomplete="username" />
+        </div>
+        <div class="form-group" style="margin-bottom:6px">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <div style="text-align:right; margin-bottom:20px">
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center" id="login-btn">
+          Sign In
+        </button>
+      </form>
+
+      <div class="demo-box">
+        <strong>Demo Credentials (after seeding)</strong>
+        <div class="demo-cred"><span>Startup (NovaPay):</span> <code>novapay@dic.qa</code> / <code>Startup@123</code></div>
+        <div class="demo-cred"><span>Staff:</span> <code>staff@dic.qa</code> / <code>Staff@123</code></div>
+        <div class="demo-cred"><span>Admin:</span> <code>admin@dic.qa</code> / <code>Admin@123</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS v2 via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script type="module">
+    import { supabase } from './js/supabase-config.js';
+    import { routeByRole } from './js/auth.js';
+
+    // If already logged in, redirect
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+      if (profile) routeByRole(profile.role);
+    }
+
+    // Role tab UI (cosmetic only — actual role comes from DB)
+    document.querySelectorAll('.role-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+
+    // Login form
+    const form    = document.getElementById('login-form');
+    const errBox  = document.getElementById('login-error');
+    const loginBtn = document.getElementById('login-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errBox.classList.remove('show');
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in…';
+
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        const { data: profile, error: pErr } = await supabase
+          .from('profiles').select('role').eq('id', data.user.id).single();
+        if (pErr || !profile) throw new Error('Profile not found. Contact your administrator.');
+
+        routeByRole(profile.role);
+      } catch (err) {
+        errBox.textContent = err.message || 'Login failed. Please try again.';
+        errBox.classList.add('show');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

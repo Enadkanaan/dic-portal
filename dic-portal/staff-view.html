@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff View — DIC Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/portal.css" />
+  <style>
+    .startup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .startup-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px;
+      cursor: pointer; transition: box-shadow .15s, border-color .15s;
+    }
+    .startup-card:hover { box-shadow: var(--shadow-md); border-color: var(--teal); }
+    .startup-card .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .startup-card h3 { font-size: .95rem; margin-bottom: 2px; }
+    .startup-card .dic-id { font-size: .72rem; color: var(--text-muted); font-family: monospace; }
+    .startup-card .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .startup-card .meta span {
+      font-size: .7rem; padding: 2px 8px; border-radius: 20px;
+      background: var(--off-white); border: 1px solid var(--border); color: var(--text-muted);
+    }
+    .completeness-mini { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .completeness-mini .bar { flex: 1; height: 5px; background: var(--border); border-radius: 10px; overflow: hidden; }
+    .completeness-mini .fill { height: 100%; background: var(--teal); border-radius: 10px; }
+    .completeness-mini .pct { font-size: .72rem; color: var(--text-muted); min-width: 30px; text-align: right; }
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; display: none;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 12px;
+      width: 90%; max-width: 780px; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,.25);
+    }
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--white); z-index: 10;
+    }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 10px;
+      position: sticky; bottom: 0; background: var(--white);
+    }
+    .close-modal { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: var(--text-muted); }
+    .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .tab-btn {
+      padding: 8px 16px; border: none; background: none; cursor: pointer;
+      font-size: .82rem; font-weight: 600; color: var(--text-muted);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: all .15s;
+    }
+    .tab-btn.active { color: var(--maroon); border-bottom-color: var(--maroon); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">DIC Portfolio</div>
+      <div class="brand-sub">Digital Innovation Department</div>
+    </div>
+    <div class="sidebar-section-label">Navigation</div>
+    <nav>
+      <a href="./staff-view.html" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        All Startups
+      </a>
+      <a href="./admin.html" id="admin-link" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Admin Panel
+      </a>
+    </nav>
+    <div class="sidebar-section-label">Account</div>
+    <nav>
+      <a href="#" id="logout-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="user-info">Loading…</div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>All Startups</h1>
+        <p>Click any startup to enter or update data on their behalf.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span id="user-role-chip" class="role-chip staff">Staff</span>
+        <a href="https://YOUR_ORG.github.io/dic-dashboard/" target="_blank" class="btn btn-secondary btn-sm">Dashboard ↗</a>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="padding:14px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <select id="f-cohort" style="min-width:140px">
+        <option value="">All Cohorts</option>
+        <option>Cohort 2024</option><option>Cohort 2025</option><option>Cohort 2026</option>
+      </select>
+      <select id="f-risk" style="min-width:140px">
+        <option value="">All Risk Levels</option>
+        <option>Low</option><option>Medium</option><option>High</option><option>No Update</option>
+      </select>
+      <input type="search" id="f-search" placeholder="Search startups…" style="min-width:200px" />
+      <span id="count-label" style="font-size:.82rem;color:var(--text-muted);margin-left:auto"></span>
+    </div>
+
+    <!-- Startup cards -->
+    <div class="startup-grid" id="startup-grid">
+      <div class="spinner"></div>
+    </div>
+  </main>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-title">Startup Name</h2>
+          <div id="modal-subtitle" style="font-size:.78rem;color:var(--text-muted)"></div>
+        </div>
+        <button class="close-modal" id="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Tab bar -->
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="identifiers">Identifiers</button>
+          <button class="tab-btn" data-tab="performance">Performance</button>
+          <button class="tab-btn" data-tab="jobs">Jobs</button>
+          <button class="tab-btn" data-tab="funding">Funding</button>
+          <button class="tab-btn" data-tab="verification">Verification</button>
+        </div>
+
+        <!-- Tab: Identifiers -->
+        <div class="tab-panel active" id="tab-identifiers">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Startup Name <span class="req">*</span></label>
+              <input type="text" id="m-name" />
+            </div>
+            <div class="form-group">
+              <label>DIC ID</label>
+              <input type="text" id="m-dic-id" />
+            </div>
+            <div class="form-group">
+              <label>Cohort <span class="req">*</span></label>
+              <select id="m-cohort">
+                <option value="">Select cohort</option>
+                <option>Cohort 2024</option><option>Cohort 2025</option><option>Cohort 2026</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Program</label>
+              <select id="m-program">
+                <option value="">Select program</option>
+                <option>Idea Camp</option><option>Incubation</option>
+                <option>Investor Readiness</option><option>Go-To-Market</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Sector / Track</label>
+              <select id="m-sector">
+                <option value="">Select sector</option>
+                <option>AI</option><option>SaaS</option><option>GovTech</option>
+                <option>FinTech</option><option>EdTech</option><option>HealthTech</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Stage</label>
+              <select id="m-stage">
+                <option value="">Select stage</option>
+                <option>Idea</option><option>MVP</option>
+                <option>Early Revenue</option><option>Growth</option><option>Scale</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select id="m-status">
+                <option>Active</option><option>Graduated</option>
+                <option>Paused</option><option>Dropped</option><option>Dormant</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Risk Level</label>
+              <select id="m-risk">
+                <option>Low</option><option>Medium</option><option>High</option><option>No Update</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Founder Name</label>
+              <input type="text" id="m-founder" />
+            </div>
+            <div class="form-group">
+              <label>Program Owner</label>
+              <input type="text" id="m-owner" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Performance -->
+        <div class="tab-panel" id="tab-performance">
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Reporting Month <span class="req">*</span></label>
+            <input type="month" id="m-month" />
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label>Monthly Revenue (QAR)</label><input type="number" id="m-revenue" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>MRR (QAR)</label><input type="number" id="m-mrr" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>ARR (QAR)</label><input type="number" id="m-arr" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Paying Customers</label><input type="number" id="m-customers" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Burn Rate (QAR)</label><input type="number" id="m-burn" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Runway (Months)</label><input type="number" id="m-runway" placeholder="0" min="0" /></div>
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label>Key Achievements</label>
+            <textarea id="m-achievements" placeholder="Achievements this month…"></textarea>
+          </div>
+        </div>
+
+        <!-- Tab: Jobs -->
+        <div class="tab-panel" id="tab-jobs">
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Reporting Month</label>
+            <input type="month" id="m-jobs-month" />
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label>Full-Time</label><input type="number" id="m-ft" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Part-Time</label><input type="number" id="m-pt" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Interns</label><input type="number" id="m-interns" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Contractors</label><input type="number" id="m-contractors" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>New This Month</label><input type="number" id="m-new-jobs" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Qatar-Based</label><input type="number" id="m-qatar-jobs" placeholder="0" min="0" /></div>
+          </div>
+        </div>
+
+        <!-- Tab: Funding -->
+        <div class="tab-panel" id="tab-funding">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Funding Status</label>
+              <select id="m-fund-status">
+                <option value="">Select</option>
+                <option>Received</option><option>Committed</option>
+                <option>In Negotiation</option><option>Closed</option><option>None</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Amount Received (QAR)</label><input type="number" id="m-fund-received" placeholder="0" min="0" /></div>
+            <div class="form-group"><label>Amount Committed (QAR)</label><input type="number" id="m-fund-committed" placeholder="0" min="0" /></div>
+            <div class="form-group">
+              <label>Round Type</label>
+              <select id="m-fund-round">
+                <option value="">Select</option>
+                <option>Grant</option><option>Pre-Seed</option><option>Seed</option>
+                <option>Series A</option><option>Bridge</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Source</label><input type="text" id="m-fund-source" placeholder="e.g. VC, Government" /></div>
+            <div class="form-group"><label>Funding Date</label><input type="date" id="m-fund-date" /></div>
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label>Evidence / Notes</label>
+            <input type="text" id="m-fund-evidence" placeholder="Link to term sheet or document" />
+          </div>
+        </div>
+
+        <!-- Tab: Verification -->
+        <div class="tab-panel" id="tab-verification">
+          <div class="form-grid">
+            <div class="form-group"><label>Reviewed By</label><input type="text" id="m-reviewed-by" /></div>
+            <div class="form-group"><label>Review Date</label><input type="date" id="m-review-date" /></div>
+            <div class="form-group">
+              <label>Verification Status</label>
+              <select id="m-verify-status">
+                <option>Unverified</option><option>Reviewed</option>
+                <option>Verified</option><option>Needs Evidence</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Recommended Intervention</label>
+              <select id="m-intervention">
+                <option>None required</option><option>Mentoring Session</option>
+                <option>Funding Introduction</option><option>Legal Support</option>
+                <option>Technical Support</option><option>Pivot Review</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Action Owner</label><input type="text" id="m-action-owner" /></div>
+            <div class="form-group"><label>Action Due Date</label><input type="date" id="m-action-due" /></div>
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label>Staff Notes</label>
+            <textarea id="m-staff-notes" placeholder="Internal notes for this startup…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancel-modal">Cancel</button>
+        <button class="btn btn-primary" id="save-modal">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="loading-overlay" id="loader"><div class="spinner"></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script type="module">
+    import { supabase } from './js/supabase-config.js';
+    import { requireAuth, getProfile, logout } from './js/auth.js';
+
+    const session = await requireAuth();
+    const profile = await getProfile();
+    if (!profile || profile.role === 'startup') window.location.href = './index.html';
+    if (profile.role === 'admin') document.getElementById('admin-link').style.display = '';
+
+    document.getElementById('user-info').innerHTML =
+      `<span class="role-chip ${profile.role}" style="font-size:.68rem">${profile.display_name || profile.role}</span>`;
+    document.getElementById('user-role-chip').className = `role-chip ${profile.role}`;
+    document.getElementById('user-role-chip').textContent = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+    document.getElementById('logout-link').addEventListener('click', e => { e.preventDefault(); logout(); });
+
+    // ── Load startups ──────────────────────────────────────
+    let allStartups = [];
+    async function loadStartups() {
+      const { data } = await supabase.from('startups').select('*').order('dic_id');
+      allStartups = data || [];
+      renderCards(allStartups);
+    }
+
+    function riskClass(r) {
+      return { Low:'badge-low', Medium:'badge-medium', High:'badge-high', 'No Update':'badge-noupdate' }[r] || 'badge-noupdate';
+    }
+
+    function renderCards(list) {
+      const grid = document.getElementById('startup-grid');
+      document.getElementById('count-label').textContent = `${list.length} startup${list.length!==1?'s':''}`;
+      if (!list.length) { grid.innerHTML = '<p style="color:var(--text-muted)">No startups found.</p>'; return; }
+      grid.innerHTML = list.map(s => `
+        <div class="startup-card" data-id="${s.id}">
+          <div class="card-top">
+            <div>
+              <h3>${s.name}</h3>
+              <div class="dic-id">${s.dic_id}</div>
+            </div>
+            <span class="badge ${riskClass(s.risk_level)}">${s.risk_level || 'No Update'}</span>
+          </div>
+          <div class="meta">
+            <span>${s.cohort || '—'}</span>
+            <span>${s.program || '—'}</span>
+            <span>${s.sector || '—'}</span>
+            <span>${s.stage || '—'}</span>
+          </div>
+          <div class="completeness-mini">
+            <div class="bar"><div class="fill" style="width:${s.status==='Active'?'80':'40'}%"></div></div>
+            <span class="pct">${s.status || 'Active'}</span>
+          </div>
+        </div>
+      `).join('');
+      grid.querySelectorAll('.startup-card').forEach(card => {
+        card.addEventListener('click', () => openModal(card.dataset.id));
+      });
+    }
+
+    // ── Filters ────────────────────────────────────────────
+    function applyFilters() {
+      const cohort = document.getElementById('f-cohort').value;
+      const risk   = document.getElementById('f-risk').value;
+      const search = document.getElementById('f-search').value.toLowerCase();
+      renderCards(allStartups.filter(s =>
+        (!cohort || s.cohort === cohort) &&
+        (!risk   || s.risk_level === risk) &&
+        (!search || s.name.toLowerCase().includes(search) || (s.dic_id||'').toLowerCase().includes(search))
+      ));
+    }
+    ['f-cohort','f-risk','f-search'].forEach(id => document.getElementById(id).addEventListener('input', applyFilters));
+
+    // ── Modal ──────────────────────────────────────────────
+    let currentStartupId = null;
+    async function openModal(id) {
+      currentStartupId = id;
+      const s = allStartups.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('modal-title').textContent = s.name;
+      document.getElementById('modal-subtitle').textContent = `${s.dic_id} · ${s.cohort || ''}`;
+      // Fill identifiers
+      document.getElementById('m-name').value    = s.name || '';
+      document.getElementById('m-dic-id').value  = s.dic_id || '';
+      document.getElementById('m-cohort').value  = s.cohort || '';
+      document.getElementById('m-program').value = s.program || '';
+      document.getElementById('m-sector').value  = s.sector || '';
+      document.getElementById('m-stage').value   = s.stage || '';
+      document.getElementById('m-status').value  = s.status || 'Active';
+      document.getElementById('m-risk').value    = s.risk_level || 'No Update';
+      document.getElementById('m-founder').value = s.founder_name || '';
+      document.getElementById('m-owner').value   = s.program_owner || '';
+      // Default month to current
+      const now = new Date();
+      const monthStr = now.toISOString().slice(0,7);
+      document.getElementById('m-month').value      = monthStr;
+      document.getElementById('m-jobs-month').value = monthStr;
+      document.getElementById('modal').classList.add('open');
+    }
+
+    document.getElementById('close-modal').addEventListener('click', () => document.getElementById('modal').classList.remove('open'));
+    document.getElementById('cancel-modal').addEventListener('click', () => document.getElementById('modal').classList.remove('open'));
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Save
+    document.getElementById('save-modal').addEventListener('click', async () => {
+      document.getElementById('loader').classList.add('show');
+      const uid = session.user.id;
+      const sid = currentStartupId;
+      const month = document.getElementById('m-month').value;
+      const reportDate = month ? month + '-01' : null;
+      try {
+        // Update startup identifiers
+        await supabase.from('startups').update({
+          name:          document.getElementById('m-name').value,
+          dic_id:        document.getElementById('m-dic-id').value,
+          cohort:        document.getElementById('m-cohort').value,
+          program:       document.getElementById('m-program').value,
+          sector:        document.getElementById('m-sector').value,
+          stage:         document.getElementById('m-stage').value,
+          status:        document.getElementById('m-status').value,
+          risk_level:    document.getElementById('m-risk').value,
+          founder_name:  document.getElementById('m-founder').value,
+          program_owner: document.getElementById('m-owner').value,
+          updated_at:    new Date().toISOString()
+        }).eq('id', sid);
+
+        // Upsert performance if month set
+        if (reportDate) {
+          await supabase.from('monthly_performance').upsert({
+            startup_id: sid, reporting_month: reportDate,
+            monthly_revenue: +document.getElementById('m-revenue').value||0,
+            mrr:             +document.getElementById('m-mrr').value||0,
+            arr:             +document.getElementById('m-arr').value||0,
+            customers:       +document.getElementById('m-customers').value||0,
+            burn_rate:       +document.getElementById('m-burn').value||0,
+            runway_months:   +document.getElementById('m-runway').value||0,
+            achievements:    document.getElementById('m-achievements').value,
+            submitted_by: uid
+          }, { onConflict: 'startup_id,reporting_month' });
+
+          const jobsMonth = document.getElementById('m-jobs-month').value;
+          if (jobsMonth) {
+            await supabase.from('jobs').upsert({
+              startup_id: sid, reporting_month: jobsMonth + '-01',
+              fulltime:       +document.getElementById('m-ft').value||0,
+              parttime:       +document.getElementById('m-pt').value||0,
+              interns:        +document.getElementById('m-interns').value||0,
+              contractors:    +document.getElementById('m-contractors').value||0,
+              new_this_month: +document.getElementById('m-new-jobs').value||0,
+              qatar_based:    +document.getElementById('m-qatar-jobs').value||0,
+              submitted_by: uid
+            }, { onConflict: 'startup_id,reporting_month' });
+          }
+
+          // Funding
+          const fStatus = document.getElementById('m-fund-status').value;
+          if (fStatus && fStatus !== 'None') {
+            await supabase.from('funding').insert({
+              startup_id: sid,
+              funding_status:   fStatus,
+              amount_received:  +document.getElementById('m-fund-received').value||0,
+              amount_committed: +document.getElementById('m-fund-committed').value||0,
+              round_type:       document.getElementById('m-fund-round').value,
+              source:           document.getElementById('m-fund-source').value,
+              funding_date:     document.getElementById('m-fund-date').value||null,
+              evidence:         document.getElementById('m-fund-evidence').value,
+              submitted_by: uid
+            });
+          }
+
+          // Verification
+          await supabase.from('verifications').upsert({
+            startup_id: sid, reporting_month: reportDate,
+            reviewed_by:     document.getElementById('m-reviewed-by').value,
+            review_date:     document.getElementById('m-review-date').value||null,
+            verify_status:   document.getElementById('m-verify-status').value,
+            intervention:    document.getElementById('m-intervention').value,
+            action_owner:    document.getElementById('m-action-owner').value,
+            action_due_date: document.getElementById('m-action-due').value||null,
+            staff_notes:     document.getElementById('m-staff-notes').value,
+            submitted_by: uid
+          }, { onConflict: 'startup_id,reporting_month' });
+        }
+
+        document.getElementById('loader').classList.remove('show');
+        document.getElementById('modal').classList.remove('open');
+        showToast('Changes saved successfully.', 'success');
+        await loadStartups();
+      } catch (err) {
+        document.getElementById('loader').classList.remove('show');
+        showToast('Save failed: ' + err.message, 'error');
+      }
+    });
+
+    function showToast(msg, type='success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast ${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    await loadStartups();
+  </script>
+</body>
+</html>

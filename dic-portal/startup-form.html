@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Data Entry — DIC Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/portal.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">DIC Portfolio</div>
+      <div class="brand-sub">Digital Innovation Department</div>
+    </div>
+    <div class="sidebar-section-label">Navigation</div>
+    <nav>
+      <a href="./startup-form.html" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M11 13l9-9"/><path d="M15 3h6v6"/></svg>
+        Submit Data
+      </a>
+      <a href="./my-startup.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        My Progress
+      </a>
+    </nav>
+    <div class="sidebar-section-label">Account</div>
+    <nav>
+      <a href="#" id="logout-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="user-info">Loading…</div>
+      <div style="margin-top:4px">Prototype v1.0 · June 2026</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Monthly Data Entry</h1>
+        <p id="startup-subtitle">Submit your startup's monthly performance update.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span id="user-role-chip" class="role-chip startup">Startup</span>
+        <a href="https://YOUR_ORG.github.io/dic-dashboard/" target="_blank" class="btn btn-secondary btn-sm">View Dashboard ↗</a>
+      </div>
+    </div>
+
+    <!-- Form completeness -->
+    <div class="form-completeness card" style="padding:14px 20px;margin-bottom:20px">
+      <span style="font-size:.82rem;font-weight:600;color:var(--text-muted)">Form Completeness</span>
+      <div class="progress-bar-wrap" style="flex:1">
+        <div class="progress-bar-fill" id="completeness-bar" style="width:0%"></div>
+      </div>
+      <span class="pct" id="completeness-pct">0%</span>
+    </div>
+
+    <form id="entry-form" novalidate>
+
+      <!-- ── Section 1: Startup Profile (read-only for startup role) ── -->
+      <div class="form-section" id="sec-profile">
+        <div class="form-section-header open" data-section="profile">
+          <div class="section-title">
+            <div class="section-num" id="num-profile">1</div>
+            <div><h3>Startup Profile</h3><p>Core identity — pre-filled from your account</p></div>
+          </div>
+          <svg class="chevron open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+        <div class="form-section-body open" id="body-profile">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Startup Name</label>
+              <input type="text" id="startup_name" readonly style="background:#F8FAFC" />
+            </div>
+            <div class="form-group">
+              <label>Startup ID</label>
+              <input type="text" id="startup_dic_id" readonly style="background:#F8FAFC" />
+            </div>
+            <div class="form-group">
+              <label>Cohort</label>
+              <input type="text" id="startup_cohort" readonly style="background:#F8FAFC" />
+            </div>
+            <div class="form-group">
+              <label>Program</label>
+              <input type="text" id="startup_program" readonly style="background:#F8FAFC" />
+            </div>
+            <div class="form-group">
+              <label>Sector / Track</label>
+              <input type="text" id="startup_sector" readonly style="background:#F8FAFC" />
+            </div>
+            <div class="form-group">
+              <label>Stage</label>
+              <input type="text" id="startup_stage" readonly style="background:#F8FAFC" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 2: Monthly Performance ── -->
+      <div class="form-section" id="sec-performance">
+        <div class="form-section-header" data-section="performance">
+          <div class="section-title">
+            <div class="section-num" id="num-performance">2</div>
+            <div><h3>Monthly Performance Update</h3><p>Business progress metrics for the reporting month</p></div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+        <div class="form-section-body" id="body-performance">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="reporting_month">Reporting Month <span class="req">*</span></label>
+              <input type="month" id="reporting_month" required />
+            </div>
+            <div class="form-group">
+              <label for="monthly_revenue">Monthly Revenue (QAR) <span class="req">*</span></label>
+              <input type="number" id="monthly_revenue" placeholder="0" min="0" required />
+              <span class="hint">Enter 0 if no revenue this month.</span>
+            </div>
+            <div class="form-group">
+              <label for="mrr">MRR — Monthly Recurring Revenue (QAR)</label>
+              <input type="number" id="mrr" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="arr">ARR — Annual Recurring Revenue (QAR)</label>
+              <input type="number" id="arr" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="customers">Paying Customers</label>
+              <input type="number" id="customers" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="active_users">Active Users</label>
+              <input type="number" id="active_users" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="pilots">Active Pilots</label>
+              <input type="number" id="pilots" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="contracts">Signed Contracts</label>
+              <input type="number" id="contracts" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="burn_rate">Monthly Burn Rate (QAR)</label>
+              <input type="number" id="burn_rate" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="runway_months">Runway (Months)</label>
+              <input type="number" id="runway_months" placeholder="0" min="0" />
+              <span class="hint">Green: 9+ · Amber: 4–8 · Red: &lt;4 months</span>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:14px;grid-template-columns:1fr 1fr">
+            <div class="form-group">
+              <label for="achievements">Key Achievements This Month</label>
+              <textarea id="achievements" placeholder="Describe main progress, wins, or milestones reached…"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="blockers_perf">Blockers &amp; Challenges</label>
+              <textarea id="blockers_perf" placeholder="Describe any blockers, delays, or challenges…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 3: Jobs ── -->
+      <div class="form-section" id="sec-jobs">
+        <div class="form-section-header" data-section="jobs">
+          <div class="section-title">
+            <div class="section-num" id="num-jobs">3</div>
+            <div><h3>Jobs Created</h3><p>Employment impact — cumulative and new positions</p></div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+        <div class="form-section-body" id="body-jobs">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="jobs_fulltime">Full-Time Employees <span class="req">*</span></label>
+              <input type="number" id="jobs_fulltime" placeholder="0" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="jobs_parttime">Part-Time Employees</label>
+              <input type="number" id="jobs_parttime" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="jobs_interns">Interns</label>
+              <input type="number" id="jobs_interns" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="jobs_contractors">Contractors</label>
+              <input type="number" id="jobs_contractors" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="jobs_new_month">New Jobs This Month</label>
+              <input type="number" id="jobs_new_month" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="jobs_qatar">Qatar-Based Jobs</label>
+              <input type="number" id="jobs_qatar" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="jobs_remote">Remote Jobs</label>
+              <input type="number" id="jobs_remote" placeholder="0" min="0" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 4: Funding ── -->
+      <div class="form-section" id="sec-funding">
+        <div class="form-section-header" data-section="funding">
+          <div class="section-title">
+            <div class="section-num" id="num-funding">4</div>
+            <div><h3>Funding Raised</h3><p>Capital outcomes — received and committed funding</p></div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+        <div class="form-section-body" id="body-funding">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="funding_status">Funding Status</label>
+              <select id="funding_status">
+                <option value="">Select status</option>
+                <option>Received</option><option>Committed</option>
+                <option>In Negotiation</option><option>Closed</option><option>None</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="funding_received">Amount Received (QAR)</label>
+              <input type="number" id="funding_received" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="funding_committed">Amount Committed (QAR)</label>
+              <input type="number" id="funding_committed" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="funding_round">Round Type</label>
+              <select id="funding_round">
+                <option value="">Select round</option>
+                <option>Grant</option><option>Pre-Seed</option><option>Seed</option>
+                <option>Series A</option><option>Series B</option><option>Bridge</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="funding_source">Funding Source</label>
+              <input type="text" id="funding_source" placeholder="e.g. Private VC, Government Grant, Angel" />
+            </div>
+            <div class="form-group">
+              <label for="funding_date">Funding Date</label>
+              <input type="date" id="funding_date" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label for="funding_evidence">Evidence / Notes</label>
+            <input type="text" id="funding_evidence" placeholder="Link to term sheet, announcement, or supporting document" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 5: Milestones ── -->
+      <div class="form-section" id="sec-milestones">
+        <div class="form-section-header" data-section="milestones">
+          <div class="section-title">
+            <div class="section-num" id="num-milestones">5</div>
+            <div><h3>Milestone Progress</h3><p>Update progress on your assigned milestones</p></div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+        <div class="form-section-body" id="body-milestones">
+          <div id="milestones-list">
+            <div class="spinner" id="milestones-spinner"></div>
+          </div>
+          <p id="no-milestones" style="display:none;color:var(--text-muted);font-size:.85rem">
+            No milestones assigned yet. Contact your program manager.
+          </p>
+        </div>
+      </div>
+
+      <!-- ── Section 6: Engagement ── -->
+      <div class="form-section" id="sec-engagement">
+        <div class="form-section-header" data-section="engagement">
+          <div class="section-title">
+            <div class="section-num" id="num-engagement">6</div>
+            <div><h3>Program Engagement</h3><p>Participation in program activities</p></div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+        <div class="form-section-body" id="body-engagement">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="mentoring_hours">Mentoring Hours (This Month)</label>
+              <input type="number" id="mentoring_hours" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="workshops_attended">Workshops Attended</label>
+              <input type="number" id="workshops_attended" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="clinics_attended">Clinics / Advisory Sessions</label>
+              <input type="number" id="clinics_attended" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="investor_meetings">Investor Meetings</label>
+              <input type="number" id="investor_meetings" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="introductions_made">Introductions Made by Program</label>
+              <input type="number" id="introductions_made" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="satisfaction_score">Satisfaction Score (1–10)</label>
+              <input type="number" id="satisfaction_score" placeholder="0" min="1" max="10" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label for="program_comments">Comments on Program Support</label>
+            <textarea id="program_comments" placeholder="Any feedback on the program this month…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 7: Support Required ── -->
+      <div class="form-section" id="sec-support">
+        <div class="form-section-header" data-section="support">
+          <div class="section-title">
+            <div class="section-num" id="num-support">7</div>
+            <div><h3>Blockers &amp; Support Required</h3><p>Challenges and specific support needed</p></div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+        <div class="form-section-body" id="body-support">
+          <div class="form-grid" style="grid-template-columns:1fr 1fr">
+            <div class="form-group">
+              <label for="support_type">Support Required from Program</label>
+              <select id="support_type">
+                <option value="">Select type</option>
+                <option>None required</option><option>Mentoring Session</option>
+                <option>Funding Introduction</option><option>Legal Support</option>
+                <option>Technical Support</option><option>Pivot Review</option>
+                <option>Exit Review</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="detailed_blockers">Detailed Blockers</label>
+              <textarea id="detailed_blockers" placeholder="Describe specific challenges or blockers in detail…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </form><!-- end #entry-form -->
+
+    <!-- Submit bar -->
+    <div class="submit-bar">
+      <button type="button" class="btn btn-secondary" id="clear-btn">Clear Draft</button>
+      <a href="./startup-form.html" class="btn btn-secondary">Cancel</a>
+      <button type="button" class="btn btn-primary" id="submit-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"><polyline points="20 6 9 17 4 12"/></svg>
+        Submit Data
+      </button>
+    </div>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+  <div class="loading-overlay" id="loader"><div class="spinner"></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script type="module">
+    import { supabase } from './js/supabase-config.js';
+    import { requireAuth, getProfile, logout, renderUserBadge } from './js/auth.js';
+
+    // ── Auth guard ─────────────────────────────────────────
+    const session = await requireAuth();
+    if (!session) throw new Error('Not authenticated');
+    const profile = await getProfile();
+    if (!profile) { window.location.href = './index.html'; }
+
+    // Redirect non-startup roles
+    if (profile.role === 'admin') window.location.href = './admin.html';
+    if (profile.role === 'staff') window.location.href = './staff-view.html';
+
+    // ── Load startup data ──────────────────────────────────
+    const { data: startup } = await supabase
+      .from('startups').select('*').eq('id', profile.startup_id).single();
+
+    if (startup) {
+      document.getElementById('startup_name').value   = startup.name;
+      document.getElementById('startup_dic_id').value = startup.dic_id;
+      document.getElementById('startup_cohort').value = startup.cohort || '';
+      document.getElementById('startup_program').value= startup.program || '';
+      document.getElementById('startup_sector').value = startup.sector || '';
+      document.getElementById('startup_stage').value  = startup.stage || '';
+      document.getElementById('startup-subtitle').textContent =
+        `${startup.name} (${startup.dic_id}) · ${startup.cohort}`;
+    }
+
+    // ── User badge ─────────────────────────────────────────
+    document.getElementById('user-info').innerHTML =
+      `<span class="role-chip startup" style="font-size:.68rem">${profile.display_name || 'Startup'}</span>`;
+    document.getElementById('logout-link').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+    // ── Load milestones ────────────────────────────────────
+    const { data: milestones } = await supabase
+      .from('milestones').select('*').eq('startup_id', profile.startup_id).order('target_date');
+
+    const mList    = document.getElementById('milestones-list');
+    const noMiles  = document.getElementById('no-milestones');
+    document.getElementById('milestones-spinner').remove();
+
+    if (!milestones || milestones.length === 0) {
+      noMiles.style.display = 'block';
+    } else {
+      mList.innerHTML = milestones.map(m => `
+        <div class="milestone-row" data-id="${m.id}">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <strong style="font-size:.9rem">${m.name}</strong>
+            <span class="badge badge-${(m.category||'').toLowerCase()}" style="background:#F1F5F9;color:#475569">${m.category || ''}</span>
+            ${m.target_date ? `<span style="font-size:.75rem;color:var(--text-muted)">Due: ${m.target_date}</span>` : ''}
+          </div>
+          <div class="form-grid" style="grid-template-columns:repeat(3,1fr)">
+            <div class="form-group">
+              <label>Status</label>
+              <select class="m-status" data-id="${m.id}">
+                ${['Not Started','In Progress','Completed','Delayed','Blocked'].map(s =>
+                  `<option ${m.status===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Progress % (0–100)</label>
+              <input type="number" class="m-progress" data-id="${m.id}" value="${m.progress_pct||0}" min="0" max="100" />
+            </div>
+            <div class="form-group">
+              <label>Evidence / Notes</label>
+              <input type="text" class="m-evidence" data-id="${m.id}" value="${m.evidence||''}" placeholder="Link or description" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ── Accordion ──────────────────────────────────────────
+    document.querySelectorAll('.form-section-header').forEach(hdr => {
+      hdr.addEventListener('click', () => {
+        const sec = hdr.dataset.section;
+        const body = document.getElementById(`body-${sec}`);
+        const chevron = hdr.querySelector('.chevron');
+        const isOpen = body.classList.contains('open');
+        body.classList.toggle('open', !isOpen);
+        hdr.classList.toggle('open', !isOpen);
+        chevron.classList.toggle('open', !isOpen);
+      });
+    });
+
+    // ── Completeness ───────────────────────────────────────
+    const reqFields = ['reporting_month','monthly_revenue','jobs_fulltime'];
+    function updateCompleteness() {
+      const filled = reqFields.filter(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim() !== '';
+      }).length;
+      const pct = Math.round((filled / reqFields.length) * 100);
+      document.getElementById('completeness-bar').style.width = pct + '%';
+      document.getElementById('completeness-pct').textContent = pct + '%';
+    }
+    document.getElementById('entry-form').addEventListener('input', updateCompleteness);
+
+    // ── Toast helper ───────────────────────────────────────
+    function showToast(msg, type='success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast ${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ── Submit ─────────────────────────────────────────────
+    document.getElementById('submit-btn').addEventListener('click', async () => {
+      const month = document.getElementById('reporting_month').value;
+      if (!month) { showToast('Please select a reporting month.', 'error'); return; }
+      if (!document.getElementById('monthly_revenue').value) {
+        showToast('Monthly Revenue is required (enter 0 if none).', 'error'); return;
+      }
+
+      document.getElementById('loader').classList.add('show');
+      const sid = profile.startup_id;
+      const uid = session.user.id;
+      const reportDate = month + '-01';
+
+      try {
+        // Upsert monthly performance
+        await supabase.from('monthly_performance').upsert({
+          startup_id: sid, reporting_month: reportDate,
+          monthly_revenue: +document.getElementById('monthly_revenue').value || 0,
+          mrr:             +document.getElementById('mrr').value || 0,
+          arr:             +document.getElementById('arr').value || 0,
+          customers:       +document.getElementById('customers').value || 0,
+          active_users:    +document.getElementById('active_users').value || 0,
+          pilots:          +document.getElementById('pilots').value || 0,
+          contracts:       +document.getElementById('contracts').value || 0,
+          burn_rate:       +document.getElementById('burn_rate').value || 0,
+          runway_months:   +document.getElementById('runway_months').value || 0,
+          achievements:    document.getElementById('achievements').value,
+          blockers:        document.getElementById('blockers_perf').value,
+          submitted_by: uid
+        }, { onConflict: 'startup_id,reporting_month' });
+
+        // Upsert jobs
+        await supabase.from('jobs').upsert({
+          startup_id: sid, reporting_month: reportDate,
+          fulltime:       +document.getElementById('jobs_fulltime').value || 0,
+          parttime:       +document.getElementById('jobs_parttime').value || 0,
+          interns:        +document.getElementById('jobs_interns').value || 0,
+          contractors:    +document.getElementById('jobs_contractors').value || 0,
+          new_this_month: +document.getElementById('jobs_new_month').value || 0,
+          qatar_based:    +document.getElementById('jobs_qatar').value || 0,
+          remote:         +document.getElementById('jobs_remote').value || 0,
+          submitted_by: uid
+        }, { onConflict: 'startup_id,reporting_month' });
+
+        // Upsert funding
+        const fStatus = document.getElementById('funding_status').value;
+        if (fStatus) {
+          await supabase.from('funding').insert({
+            startup_id: sid,
+            funding_status:   fStatus,
+            amount_received:  +document.getElementById('funding_received').value || 0,
+            amount_committed: +document.getElementById('funding_committed').value || 0,
+            round_type:       document.getElementById('funding_round').value,
+            source:           document.getElementById('funding_source').value,
+            funding_date:     document.getElementById('funding_date').value || null,
+            evidence:         document.getElementById('funding_evidence').value,
+            submitted_by: uid
+          });
+        }
+
+        // Update milestone progress
+        const mRows = document.querySelectorAll('.milestone-row');
+        for (const row of mRows) {
+          const mid = row.dataset.id;
+          await supabase.from('milestones').update({
+            status:       row.querySelector('.m-status').value,
+            progress_pct: +row.querySelector('.m-progress').value || 0,
+            evidence:     row.querySelector('.m-evidence').value,
+            updated_by:   uid,
+            updated_at:   new Date().toISOString()
+          }).eq('id', mid);
+        }
+
+        // Upsert engagement
+        await supabase.from('engagement').upsert({
+          startup_id: sid, reporting_month: reportDate,
+          mentoring_hours:    +document.getElementById('mentoring_hours').value || 0,
+          workshops_attended: +document.getElementById('workshops_attended').value || 0,
+          clinics_attended:   +document.getElementById('clinics_attended').value || 0,
+          investor_meetings:  +document.getElementById('investor_meetings').value || 0,
+          introductions_made: +document.getElementById('introductions_made').value || 0,
+          satisfaction_score: +document.getElementById('satisfaction_score').value || null,
+          program_comments:   document.getElementById('program_comments').value,
+          submitted_by: uid
+        }, { onConflict: 'startup_id,reporting_month' });
+
+        // Upsert support
+        await supabase.from('support_requests').upsert({
+          startup_id: sid, reporting_month: reportDate,
+          support_type:      document.getElementById('support_type').value,
+          detailed_blockers: document.getElementById('detailed_blockers').value,
+          submitted_by: uid
+        }, { onConflict: 'startup_id,reporting_month' });
+
+        document.getElementById('loader').classList.remove('show');
+        showToast('Data submitted successfully! Dashboard updated.', 'success');
+      } catch (err) {
+        document.getElementById('loader').classList.remove('show');
+        showToast('Submission failed: ' + err.message, 'error');
+        console.error(err);
+      }
+    });
+
+    // ── Clear draft ────────────────────────────────────────
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      if (confirm('Clear all entered data?')) {
+        document.getElementById('entry-form').reset();
+        updateCompleteness();
+      }
+    });
+  </script>
+</body>
+</html>
