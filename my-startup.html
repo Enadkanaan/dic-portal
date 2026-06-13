@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Progress — DIC Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/portal.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Progress page specific styles ─────────────────────── */
+    .profile-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px;
+      background: var(--maroon);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .profile-info h1 { color: #fff; font-size: 1.5rem; margin-bottom: 4px; }
+    .profile-info p  { color: rgba(255,255,255,.65); font-size: .88rem; margin: 0; }
+    .profile-meta {
+      margin-left: auto;
+      display: flex; gap: 24px;
+      text-align: center;
+    }
+    .profile-meta-item span {
+      display: block;
+      font-size: 1.5rem; font-weight: 700; color: var(--teal-light);
+    }
+    .profile-meta-item small {
+      font-size: .75rem; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: .04em;
+    }
+
+    /* ── KPI strip ──────────────────────────────────────────── */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--teal);
+    }
+    .kpi-card.red   { border-left-color: var(--red); }
+    .kpi-card.amber { border-left-color: var(--amber); }
+    .kpi-card.navy  { border-left-color: var(--navy); }
+    .kpi-label { font-size: .75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--navy); line-height: 1; }
+    .kpi-sub   { font-size: .78rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Section grid ───────────────────────────────────────── */
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .section-grid.wide { grid-template-columns: 1fr; }
+
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-header h2 { font-size: 1rem; font-weight: 600; color: var(--navy); }
+    .card-header p  { font-size: .78rem; color: var(--text-muted); margin: 2px 0 0; }
+    .card-body { padding: 20px; }
+
+    /* ── Milestone list ─────────────────────────────────────── */
+    .milestone-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .milestone-item:last-child { border-bottom: none; }
+    .milestone-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .milestone-name { font-weight: 600; font-size: .9rem; color: var(--navy); }
+    .milestone-meta { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+    .milestone-progress-wrap {
+      background: #E2E8F0; border-radius: 99px; height: 8px; overflow: hidden;
+    }
+    .milestone-progress-fill {
+      height: 100%; border-radius: 99px;
+      background: var(--teal);
+      transition: width .4s ease;
+    }
+    .milestone-progress-fill.amber { background: var(--amber); }
+    .milestone-progress-fill.red   { background: var(--red); }
+    .milestone-pct { font-size: .78rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+
+    /* ── Status badge ───────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .badge-green  { background: #DCFCE7; color: #166534; }
+    .badge-amber  { background: #FEF3C7; color: #92400E; }
+    .badge-red    { background: #FEE2E2; color: #991B1B; }
+    .badge-grey   { background: #F1F5F9; color: #475569; }
+    .badge-blue   { background: #DBEAFE; color: #1E40AF; }
+    .badge-navy   { background: #E0E7FF; color: #3730A3; }
+
+    /* ── Submission history table ───────────────────────────── */
+    .history-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .history-table th {
+      background: #F8FAFC; padding: 10px 14px;
+      text-align: left; font-size: .72rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em;
+      border-bottom: 2px solid var(--border);
+    }
+    .history-table td {
+      padding: 11px 14px; border-bottom: 1px solid var(--border);
+      color: var(--text); vertical-align: middle;
+    }
+    .history-table tr:last-child td { border-bottom: none; }
+    .history-table tr:hover td { background: #F8FAFC; }
+
+    /* ── Chart containers ───────────────────────────────────── */
+    .chart-wrap { position: relative; height: 220px; }
+
+    /* ── Empty state ────────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-muted); font-size: .88rem;
+    }
+    .empty-state svg { opacity: .3; margin-bottom: 10px; }
+
+    /* ── Update prompt banner ───────────────────────────────── */
+    .update-banner {
+      background: #FEF3C7; border: 1px solid #FCD34D;
+      border-radius: var(--radius); padding: 14px 18px;
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px; font-size: .88rem; color: #92400E;
+    }
+    .update-banner a {
+      margin-left: auto; background: var(--amber); color: #fff;
+      padding: 6px 16px; border-radius: 6px; font-weight: 600;
+      text-decoration: none; font-size: .82rem; white-space: nowrap;
+    }
+    .update-banner a:hover { opacity: .9; }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .section-grid { grid-template-columns: 1fr; }
+      .profile-meta { display: none; }
+    }
+    @media (max-width: 600px) {
+      .kpi-strip { grid-template-columns: 1fr 1fr; }
+      .profile-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">DIC Portfolio</div>
+      <div class="brand-sub">Digital Innovation Department</div>
+    </div>
+    <div class="sidebar-section-label">Navigation</div>
+    <nav>
+      <a href="./startup-form.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/><path d="M11 13l9-9"/><path d="M15 3h6v6"/></svg>
+        Submit Data
+      </a>
+      <a href="./my-startup.html" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        My Progress
+      </a>
+    </nav>
+    <div class="sidebar-section-label">Account</div>
+    <nav>
+      <a href="#" id="logout-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="user-info">Loading…</div>
+      <div style="margin-top:4px">Prototype v2.0 · June 2026</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>My Progress</h1>
+        <p id="startup-subtitle">Your startup's milestones, submissions, and performance overview.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="role-chip startup">Startup</span>
+        <a href="./startup-form.html" class="btn btn-primary btn-sm">+ Submit This Month</a>
+      </div>
+    </div>
+
+    <!-- Update due banner (shown if no submission this month) -->
+    <div class="update-banner" id="update-banner" style="display:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="banner-msg">Your monthly data for this period has not been submitted yet.</span>
+      <a href="./startup-form.html">Submit Now →</a>
+    </div>
+
+    <!-- Profile banner -->
+    <div class="profile-banner" id="profile-banner">
+      <div class="profile-avatar" id="avatar-initials">—</div>
+      <div class="profile-info">
+        <h1 id="banner-name">Loading…</h1>
+        <p id="banner-meta">—</p>
+      </div>
+      <div class="profile-meta">
+        <div class="profile-meta-item">
+          <span id="meta-months">—</span>
+          <small>Months Submitted</small>
+        </div>
+        <div class="profile-meta-item">
+          <span id="meta-milestones">—</span>
+          <small>Milestones</small>
+        </div>
+        <div class="profile-meta-item">
+          <span id="meta-completion">—</span>
+          <small>Avg Completion</small>
+        </div>
+        <div class="profile-meta-item">
+          <span id="meta-risk" style="color:var(--teal-light)">—</span>
+          <small>Risk Level</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-label">Latest Monthly Revenue</div>
+        <div class="kpi-value" id="kpi-revenue">—</div>
+        <div class="kpi-sub" id="kpi-revenue-sub">—</div>
+      </div>
+      <div class="kpi-card navy">
+        <div class="kpi-label">Total Jobs Created</div>
+        <div class="kpi-value" id="kpi-jobs">—</div>
+        <div class="kpi-sub" id="kpi-jobs-sub">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Funding Raised</div>
+        <div class="kpi-value" id="kpi-funding">—</div>
+        <div class="kpi-sub" id="kpi-funding-sub">—</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Milestone Completion</div>
+        <div class="kpi-value" id="kpi-milestone-pct">—</div>
+        <div class="kpi-sub" id="kpi-milestone-sub">—</div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Revenue Trend</h2>
+            <p>Monthly revenue over your last 6 submissions</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap">
+            <canvas id="chart-revenue"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Milestone Overview</h2>
+            <p>Breakdown by completion status</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap">
+            <canvas id="chart-milestones"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Milestones list -->
+    <div class="section-grid wide" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>My Milestones</h2>
+            <p>Set by your program manager — update progress via the Submit Data form</p>
+          </div>
+          <span id="milestone-count" class="badge badge-navy">0 milestones</span>
+        </div>
+        <div class="card-body" id="milestone-list">
+          <div class="empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            <p>No milestones assigned yet.<br>Your program manager will add them shortly.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submission history -->
+    <div class="section-grid wide">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Submission History</h2>
+            <p>All monthly data submissions for your startup</p>
+          </div>
+          <span id="history-count" class="badge badge-grey">0 submissions</span>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div id="history-table-wrap">
+            <div class="empty-state">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <p>No submissions yet. <a href="./startup-form.html" style="color:var(--teal)">Submit your first monthly update →</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Scripts ─────────────────────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script type="module">
+    import { requireAuth, getProfile, logout } from './js/auth.js';
+    import { supabase } from './js/supabase-config.js';
+
+    // ── Helpers ─────────────────────────────────────────────────
+    const fmt = (n, prefix = 'QAR ') => {
+      if (n == null || n === '') return '—';
+      const v = Number(n);
+      if (v >= 1_000_000) return prefix + (v / 1_000_000).toFixed(1) + 'M';
+      if (v >= 1_000)     return prefix + (v / 1_000).toFixed(0) + 'K';
+      return prefix + v.toLocaleString();
+    };
+    const fmtMonth = d => {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return dt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+    };
+    const statusBadge = s => {
+      const map = {
+        'Completed':   'badge-green',
+        'In Progress': 'badge-blue',
+        'Not Started': 'badge-grey',
+        'Delayed':     'badge-amber',
+        'Blocked':     'badge-red'
+      };
+      return `<span class="badge ${map[s] || 'badge-grey'}">${s || 'Unknown'}</span>`;
+    };
+    const riskBadge = r => {
+      const map = { Low: 'badge-green', Medium: 'badge-amber', High: 'badge-red', 'No Update': 'badge-grey' };
+      return `<span class="badge ${map[r] || 'badge-grey'}">${r || 'No Update'}</span>`;
+    };
+    const progressColor = pct => pct >= 70 ? '' : pct >= 40 ? 'amber' : 'red';
+
+    // ── Auth guard ───────────────────────────────────────────────
+    const session = await requireAuth();
+    if (!session) throw new Error('No session');
+
+    const profile = await getProfile();
+    if (!profile) { window.location.href = './index.html'; }
+
+    // Allow staff/admin to preview any startup via ?startup_id=xxx
+    const params = new URLSearchParams(window.location.search);
+    const startupId = params.get('startup_id') || profile.startup_id;
+
+    if (!startupId) {
+      document.querySelector('.main-content').innerHTML =
+        '<div class="empty-state" style="padding:80px 20px"><p>No startup linked to your account. Contact your program manager.</p></div>';
+      throw new Error('No startup_id');
+    }
+
+    // Logout
+    document.getElementById('logout-link').addEventListener('click', e => {
+      e.preventDefault(); logout();
+    });
+
+    // ── Load startup profile ─────────────────────────────────────
+    const { data: startup } = await supabase
+      .from('startups')
+      .select('*')
+      .eq('id', startupId)
+      .single();
+
+    if (!startup) {
+      document.querySelector('.main-content').innerHTML =
+        '<div class="empty-state" style="padding:80px 20px"><p>Startup not found.</p></div>';
+      throw new Error('Startup not found');
+    }
+
+    // Banner
+    const initials = startup.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('avatar-initials').textContent = initials;
+    document.getElementById('banner-name').textContent = startup.name;
+    document.getElementById('banner-meta').textContent =
+      [startup.dic_id, startup.cohort, startup.program, startup.sector, startup.stage]
+        .filter(Boolean).join(' · ');
+    document.getElementById('startup-subtitle').textContent =
+      `Progress overview for ${startup.name}`;
+    document.getElementById('user-info').textContent =
+      `${profile.display_name || profile.role} · ${startup.name}`;
+
+    // ── Load milestones ──────────────────────────────────────────
+    const { data: milestones = [] } = await supabase
+      .from('milestones')
+      .select('*')
+      .eq('startup_id', startupId)
+      .order('target_date', { ascending: true });
+
+    const completed   = milestones.filter(m => m.status === 'Completed').length;
+    const inProgress  = milestones.filter(m => m.status === 'In Progress').length;
+    const notStarted  = milestones.filter(m => m.status === 'Not Started').length;
+    const delayed     = milestones.filter(m => m.status === 'Delayed').length;
+    const blocked     = milestones.filter(m => m.status === 'Blocked').length;
+    const avgCompletion = milestones.length
+      ? Math.round(milestones.reduce((s, m) => s + (m.progress_pct || 0), 0) / milestones.length)
+      : 0;
+
+    document.getElementById('meta-milestones').textContent = milestones.length;
+    document.getElementById('meta-completion').textContent = avgCompletion + '%';
+    document.getElementById('meta-risk').textContent = startup.risk_level || 'No Update';
+    document.getElementById('kpi-milestone-pct').textContent = avgCompletion + '%';
+    document.getElementById('kpi-milestone-sub').textContent =
+      `${completed} completed · ${milestones.length - completed} remaining`;
+    document.getElementById('milestone-count').textContent =
+      `${milestones.length} milestone${milestones.length !== 1 ? 's' : ''}`;
+
+    // Render milestone list
+    const milestoneList = document.getElementById('milestone-list');
+    if (milestones.length === 0) {
+      milestoneList.innerHTML = `
+        <div class="empty-state">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <p>No milestones assigned yet.<br>Your program manager will add them shortly.</p>
+        </div>`;
+    } else {
+      milestoneList.innerHTML = milestones.map(m => {
+        const pct = m.progress_pct || 0;
+        const overdue = m.target_date && new Date(m.target_date) < new Date() && m.status !== 'Completed';
+        return `
+          <div class="milestone-item">
+            <div class="milestone-top">
+              <div>
+                <div class="milestone-name">${m.name}</div>
+                <div class="milestone-meta">
+                  ${m.category ? `<strong>${m.category}</strong> · ` : ''}
+                  Target: ${fmtMonth(m.target_date)}
+                  ${overdue ? ' · <span style="color:var(--red);font-weight:600">Overdue</span>' : ''}
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                ${statusBadge(m.status)}
+                <span class="milestone-pct">${pct}%</span>
+              </div>
+            </div>
+            <div class="milestone-progress-wrap">
+              <div class="milestone-progress-fill ${progressColor(pct)}" style="width:${pct}%"></div>
+            </div>
+            ${m.evidence ? `<div style="font-size:.75rem;color:var(--text-muted);margin-top:6px">Evidence: ${m.evidence}</div>` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    // Milestone donut chart
+    new Chart(document.getElementById('chart-milestones'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'In Progress', 'Not Started', 'Delayed', 'Blocked'],
+        datasets: [{
+          data: [completed, inProgress, notStarted, delayed, blocked],
+          backgroundColor: ['#16A34A','#00897B','#94A3B8','#F59E0B','#DC2626'],
+          borderWidth: 2, borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { size: 12 }, padding: 12 } }
+        },
+        cutout: '65%'
+      }
+    });
+
+    // ── Load monthly performance ─────────────────────────────────
+    const { data: perf = [] } = await supabase
+      .from('monthly_performance')
+      .select('*')
+      .eq('startup_id', startupId)
+      .order('reporting_month', { ascending: false });
+
+    document.getElementById('meta-months').textContent = perf.length;
+    document.getElementById('history-count').textContent =
+      `${perf.length} submission${perf.length !== 1 ? 's' : ''}`;
+
+    // Check if current month submitted
+    const now = new Date();
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+    const submittedThisMonth = perf.some(p => p.reporting_month === thisMonth || p.reporting_month?.startsWith(thisMonth.slice(0, 7)));
+    if (!submittedThisMonth) {
+      document.getElementById('update-banner').style.display = 'flex';
+      document.getElementById('banner-msg').textContent =
+        `Your monthly data for ${now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })} has not been submitted yet.`;
+    }
+
+    // Latest KPIs
+    const latest = perf[0];
+    if (latest) {
+      document.getElementById('kpi-revenue').textContent = fmt(latest.monthly_revenue);
+      document.getElementById('kpi-revenue-sub').textContent = `As of ${fmtMonth(latest.reporting_month)}`;
+    } else {
+      document.getElementById('kpi-revenue').textContent = '—';
+      document.getElementById('kpi-revenue-sub').textContent = 'No submissions yet';
+    }
+
+    // Revenue trend chart (last 6 months, ascending)
+    const perfAsc = [...perf].reverse().slice(-6);
+    new Chart(document.getElementById('chart-revenue'), {
+      type: 'line',
+      data: {
+        labels: perfAsc.map(p => fmtMonth(p.reporting_month)),
+        datasets: [{
+          label: 'Monthly Revenue (QAR)',
+          data: perfAsc.map(p => p.monthly_revenue || 0),
+          borderColor: '#00897B',
+          backgroundColor: 'rgba(0,137,123,.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#00897B',
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: v => v >= 1000 ? 'QAR ' + (v/1000).toFixed(0) + 'K' : 'QAR ' + v
+            },
+            grid: { color: '#F1F5F9' }
+          },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ── Load jobs ────────────────────────────────────────────────
+    const { data: jobs = [] } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('startup_id', startupId)
+      .order('reporting_month', { ascending: false });
+
+    const latestJobs = jobs[0];
+    const totalJobs = latestJobs
+      ? (latestJobs.fulltime || 0) + (latestJobs.parttime || 0) + (latestJobs.interns || 0) + (latestJobs.contractors || 0)
+      : 0;
+    document.getElementById('kpi-jobs').textContent = totalJobs || '—';
+    document.getElementById('kpi-jobs-sub').textContent = latestJobs
+      ? `${latestJobs.fulltime || 0} FT · ${latestJobs.parttime || 0} PT · ${latestJobs.interns || 0} interns`
+      : 'No data yet';
+
+    // ── Load funding ─────────────────────────────────────────────
+    const { data: funding = [] } = await supabase
+      .from('funding')
+      .select('*')
+      .eq('startup_id', startupId)
+      .order('submitted_at', { ascending: false });
+
+    const totalFunding = funding.reduce((s, f) => s + (f.amount_received || 0), 0);
+    document.getElementById('kpi-funding').textContent = fmt(totalFunding);
+    document.getElementById('kpi-funding-sub').textContent = funding.length
+      ? `${funding.length} funding record${funding.length !== 1 ? 's' : ''}`
+      : 'No funding data yet';
+
+    // ── Submission history table ─────────────────────────────────
+    const histWrap = document.getElementById('history-table-wrap');
+    if (perf.length === 0) {
+      histWrap.innerHTML = `
+        <div class="empty-state">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <p>No submissions yet. <a href="./startup-form.html" style="color:var(--teal)">Submit your first monthly update →</a></p>
+        </div>`;
+    } else {
+      // Merge perf + jobs by month
+      const jobsByMonth = {};
+      jobs.forEach(j => { jobsByMonth[j.reporting_month] = j; });
+
+      histWrap.innerHTML = `
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Revenue</th>
+              <th>MRR</th>
+              <th>Customers</th>
+              <th>Jobs (FT)</th>
+              <th>Burn Rate</th>
+              <th>Runway</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${perf.map(p => {
+              const j = jobsByMonth[p.reporting_month] || {};
+              return `
+                <tr>
+                  <td><strong>${fmtMonth(p.reporting_month)}</strong></td>
+                  <td>${fmt(p.monthly_revenue)}</td>
+                  <td>${fmt(p.mrr)}</td>
+                  <td>${p.customers ?? '—'}</td>
+                  <td>${j.fulltime ?? '—'}</td>
+                  <td>${fmt(p.burn_rate)}</td>
+                  <td>${p.runway_months != null ? p.runway_months + ' mo' : '—'}</td>
+                  <td style="color:var(--text-muted);font-size:.78rem">${p.submitted_at ? new Date(p.submitted_at).toLocaleDateString('en-GB') : '—'}</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`;
+    }
+
+  </script>
+</body>
+</html>
